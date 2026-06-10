@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Enhanced 3D Drone Spatial Parameter Estimation | Sara's Research</title>
+    <!-- Google Fonts & Font Awesome for clean icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f4f7fc;
+            color: #1e2a3e;
+            line-height: 1.5;
+            padding: 2rem 1.5rem;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        /* cards */
+        .card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.02);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            transition: box-shadow 0.2s;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            border-bottom: 2px solid #e9edf2;
+            padding-bottom: 0.75rem;
+        }
+        .card-header i {
+            font-size: 1.8rem;
+            color: #2c7da0;
+        }
+        .card-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+            color: #0b3b4f;
+        }
+
+        .badge {
+            background: #eef2f9;
+            color: #1e5f7a;
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        /* flowchart canvas */
+        .flowchart-wrapper {
+            background: #ffffff;
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: center;
+            overflow-x: auto;
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+            background: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        /* grid for equations and simulator */
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        @media (max-width: 780px) {
+            .two-columns {
+                grid-template-columns: 1fr;
+            }
+            body {
+                padding: 1rem;
+            }
+        }
+
+        .equation-box {
+            background: #f8fafd;
+            border-radius: 1rem;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            border-left: 4px solid #2c7da0;
+            margin-top: 1rem;
+        }
+
+        .formula {
+            background: #eef2fa;
+            padding: 0.5rem;
+            border-radius: 0.75rem;
+            font-family: monospace;
+            font-weight: 500;
+            margin: 0.5rem 0;
+        }
+
+        .slider-group {
+            margin-bottom: 1.5rem;
+        }
+        .slider-group label {
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin: 0.5rem 0;
+        }
+        .value-display {
+            background: #eef2fa;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .metric-badge {
+            background: #d9eef5;
+            border-radius: 1rem;
+            padding: 0.2rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        hr {
+            margin: 1rem 0;
+            border: 0;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
+        .contrib-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .contrib-card {
+            flex: 1;
+            background: #eef2fc;
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #5d6f83;
+            margin-top: 2rem;
+        }
+        i.icon-text {
+            margin-right: 0.3rem;
+        }
+        .btn-reset {
+            background: #e0e7ef;
+            border: none;
+            padding: 0.3rem 1rem;
+            border-radius: 2rem;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- header -->
+    <div class="card" style="background: linear-gradient(135deg, #ffffff 0%, #f6faff 100%);">
+        <div class="card-header" style="border-bottom: none; padding-bottom: 0;">
+            <i class="fas fa-drone" style="font-size: 2rem; color:#1f6392;"></i>
+            <h1 style="font-size: 1.9rem;">Enhanced 3D Drone Spatial Parameter Estimation</h1>
+        </div>
+        <p style="font-size: 1.1rem; margin-top: 0.5rem;"><strong>Sara Adel Darwish</strong> — M.Sc. research proposal (Cairo University)<br>
+        <span class="badge"><i class="fas fa-lightbulb"></i> Novel contribution: first fusion of attention‑stabilized detector + full 3D position (X,Y,Z) with lateral offset</span></p>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.8rem;">
+            <span><i class="fas fa-check-circle" style="color:#2c7da0;"></i> Frozen Hossam’s model (YOLOv8+CBAM+ECA)</span>
+            <span><i class="fas fa-chart-line"></i> Stable bounding box → lower estimation error</span>
+            <span><i class="fas fa-cubes"></i> Real‑time (X, Y, Z) in meters</span>
+        </div>
+    </div>
+
+    <!-- FLOWCHART: pipeline diagram -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-project-diagram"></i>
+            <h2>Proposed Pipeline — from video frame to 3D position</h2>
+        </div>
+        <div class="flowchart-wrapper">
+            <canvas id="pipelineCanvas" width="900" height="220" style="width:100%; height:auto; max-width:1000px;"></canvas>
+        </div>
+        <p class="badge" style="margin-top: 0.8rem; display: inline-block;"><i class="fas fa-microchip"></i> No retraining – fully geometric after frozen detector</p>
+    </div>
+
+    <!-- GEOMETRY + INTERACTIVE SIMULATOR (2 columns) -->
+    <div class="two-columns">
+        <!-- left: geometry background and equations -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-ruler-combined"></i>
+                <h2>Pinhole geometry & spatial formulas</h2>
+            </div>
+            <p>Using stable bounding box width <strong>w</strong> (pixels) and center <strong>x<sub>c</sub></strong> from attention‑based detector (Hossam 2026).</p>
+            <div class="equation-box">
+                <div class="formula">📏 <strong>Distance Z</strong> = (W<sub>real</sub> × F) / w</div>
+                <div class="formula">↔️ <strong>Lateral offset X</strong> = ((x<sub>c</sub> - c<sub>x</sub>) × Z) / F</div>
+                <div class="formula">⬆️ <strong>Height Y</strong> = Z × sin(θ<sub>tilt</sub>)</div>
+                <p style="margin-top: 0.6rem; font-size: 0.85rem;">📌 <strong>Parameters fixed (calibration/assumption):</strong><br>
+                W<sub>real</sub> = 0.4 m (average drone wingspan), F = 1000 px (focal length), c<sub>x</sub> = 320 px (optical center, 640px image width)<br>
+                θ<sub>tilt</sub> = 15° (camera downward tilt) &nbsp;→&nbsp; sin(15°) ≈ 0.2588</p>
+            </div>
+            <p><i class="fas fa-chart-simple"></i> <strong>Why attention‑stabilized box?</strong> Standard YOLO jitter (2–3 px) can cause distance errors >15%. Hossam’s CBAM+ECA reduces bounding box noise → more reliable X,Y,Z.</p>
+            <div class="contrib-list" style="margin-top: 0.8rem;">
+                <div class="contrib-card"><i class="fas fa-chart-line fa-lg"></i><br>+ Lateral offset <strong>X</strong><br><span style="font-size: 0.75rem;">absent in [7][8][9]</span></div>
+                <div class="contrib-card"><i class="fas fa-vr-cardboard"></i><br>First to quantify<br>stability gain</div>
+                <div class="contrib-card"><i class="fas fa-tachometer-alt"></i><br>Real‑time CPU<br>(OpenVINO ready)</div>
+            </div>
+        </div>
+
+        <!-- right: interactive simulator -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-sliders-h"></i>
+                <h2>Simulator: Bounding box → (X, Y, Z)</h2>
+            </div>
+            <p>Adjust the detected bounding box parameters (as produced by frozen Hossam detector) and see real‑time 3D position.</p>
+            <div class="slider-group">
+                <label><span><i class="fas fa-arrows-alt-h"></i> Bounding box width <em>w</em> (pixels)</span> <span id="wValue" class="value-display">20 px</span></label>
+                <input type="range" id="widthSlider" min="5" max="160" value="20" step="1">
+                <div class="metric-badge" style="margin-top: 4px;">smaller w → drone farther away</div>
+            </div>
+            <div class="slider-group">
+                <label><span><i class="fas fa-crosshairs"></i> Box center <em>x<sub>center</sub></em> (pixels, image width 640)</span> <span id="xcValue" class="value-display">320 px</span></label>
+                <input type="range" id="centerSlider" min="0" max="640" value="320" step="2">
+                <div class="metric-badge">cx = 320 (optical center) → X = lateral offset in meters</div>
+            </div>
+
+            <hr>
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                <div><i class="fas fa-arrow-right"></i> <strong>Distance Z</strong><br><span id="distanceVal" class="value-display" style="font-size: 1.2rem;">-- m</span></div>
+                <div><i class="fas fa-arrow-left"></i> <strong>Lateral X</strong><br><span id="lateralVal" class="value-display" style="font-size: 1.2rem;">-- m</span></div>
+                <div><i class="fas fa-arrow-up"></i> <strong>Height Y</strong><br><span id="heightVal" class="value-display" style="font-size: 1.2rem;">-- m</span></div>
+            </div>
+            <div style="margin-top: 1rem;">
+                <div class="formula" style="background: #e2f0f5;"><i class="fas fa-info-circle"></i> Example: w=20px → Z = (0.4×1000)/20 = 20.0 m.  If x<sub>c</sub>=400px → X = ((400-320)×20)/1000 = 1.6 m (right side). Y = 20×0.2588 ≈ 5.18 m.</div>
+            </div>
+            <button id="resetSimBtn" class="btn-reset"><i class="fas fa-undo-alt"></i> Reset to typical values (w=20, center=320)</button>
+            <!-- small live indicator for lateral position -->
+            <div style="margin-top: 1rem; background:#f1f5f9; border-radius: 2rem; padding: 0.5rem 1rem;">
+                <i class="fas fa-eye"></i> <strong>Lateral indicator:</strong> 
+                <span id="lateralDir">➡️ Right</span> <span id="lateralValShort">0.0 m</span>
+                <div style="background:#cbd5e1; height: 6px; width:100%; margin-top: 0.4rem; border-radius: 3px;">
+                    <div id="lateralBar" style="background:#2c7da0; width:50%; height:6px; border-radius: 3px; transition: 0.1s;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- APPLICATION SCENARIO (power tower protection) -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-tower-broadcast"></i>
+            <h2>Real‑world scenario: Power tower protection</h2>
+        </div>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+            <div style="flex:2">
+                <p><i class="fas fa-video"></i> Camera mounted on tower → live feed → <strong>our model</strong> outputs (X, Y, Z) for every detected drone.<br>
+                ➤ <strong>X</strong> : lateral offset (left/right of tower)<br>
+                ➤ <strong>Z</strong> : distance from tower → if decreasing → approach alert<br>
+                ➤ <strong>Y</strong> : height relative to ground → collision risk assessment<br>
+                🚨 <strong>Decision logic:</strong> When Z < 30m and |X| < 5m and Y within tower height → Red alert (active countermeasure).</p>
+                <div class="badge"><i class="fas fa-microchip"></i> Edge compatible (NVIDIA Jetson, CPU + OpenVINO)</div>
+            </div>
+            <div style="flex:1; background:#e6f4f0; border-radius: 1.5rem; padding: 1rem; text-align: center;">
+                <i class="fas fa-charging-station" style="font-size: 2.5rem;"></i>
+                <p style="font-weight: 600; margin-top: 0.5rem;">From 2D box to 3D awareness</p>
+                <span style="font-size: 0.8rem;">X: left/right &nbsp;|&nbsp; Z: distance &nbsp;|&nbsp; Y: altitude</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- References & credit -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-book-open"></i>
+            <h2>Key references & foundation</h2>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.8rem; justify-content: space-between;">
+            <div style="flex:1; min-width: 180px;">
+                <i class="fas fa-user-graduate"></i> <strong>Hossam AbdElwahab (2026)</strong><br>
+                Attention‑augmented YOLOv8 (CBAM+ECA)<br>
+                <span class="badge">Precision 98.5% | Recall 92.9% | stable boxes</span>
+            </div>
+            <div style="flex:1; min-width: 180px;">
+                <i class="fas fa-chart-line"></i> <strong>Han et al. (2025), Wang et al. (2025)</strong><br>
+                Monocular distance/height estimation (no lateral offset, standard YOLO)
+            </div>
+            <div style="flex:1; min-width: 180px;">
+                <i class="fas fa-cube"></i> <strong>Alshaer (2025), Li (2024)</strong><br>
+                3D tracking / SLAM, but without attention‑stabilized detector.
+            </div>
+        </div>
+        <hr>
+        <p style="font-size: 0.9rem; margin-top: 0.8rem;"><i class="fas fa-quote-left"></i> This research is the <strong>first to demonstrate</strong> that a frozen attention‑stabilized detector (Hossam’s model) quantitatively improves full 3D spatial parameter estimation (X,Y,Z) for drones, including lateral offset — enabling proactive anti‑drone defense.</p>
+    </div>
+    <footer>
+        © 2026 Sara Adel Darwish — Cairo University, Faculty of Computers and Artificial Intelligence. 
+        Proposal for M.Sc. in Artificial Intelligence.
+    </footer>
+</div>
+
+<script>
+    // ----- CANVAS PIPELINE DRAWING -----
+    function drawPipeline() {
+        const canvas = document.getElementById('pipelineCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const width = 900, height = 220;
+        canvas.width = width;
+        canvas.height = height;
+        ctx.clearRect(0, 0, width, height);
+        ctx.font = '500 13px "Inter", sans-serif';
+        ctx.textAlign = "center";
+        
+        // define boxes
+        const boxes = [
+            { x: 40, y: 50, w: 130, h: 70, label: "Input Frame\n(RGB video)", icon: "📷" },
+            { x: 220, y: 50, w: 150, h: 70, label: "Frozen Detector\n(Hossam: YOLOv8\n+CBAM+ECA)", icon: "⚙️" },
+            { x: 420, y: 50, w: 140, h: 70, label: "2D Bounding Box\nw (width)\nx_center", icon: "📦" },
+            { x: 610, y: 50, w: 130, h: 70, label: "Geometric Module\n(Pinhole)", icon: "📐" },
+            { x: 790, y: 50, w: 100, h: 70, label: "3D Position\n(X, Y, Z)", icon: "🎯" }
+        ];
+        
+        // draw arrows and boxes
+        for (let i = 0; i < boxes.length; i++) {
+            const b = boxes[i];
+            // rounded rect
+            ctx.fillStyle = "#ffffff";
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = "#2c7da0";
+            ctx.lineWidth = 1.5;
+            ctx.fillStyle = "#fefefe";
+            ctx.fillRect(b.x, b.y, b.w, b.h);
+            ctx.strokeRect(b.x, b.y, b.w, b.h);
+            ctx.fillStyle = "#1e4663";
+            ctx.font = "bold 12px 'Inter'";
+            let lines = b.label.split('\n');
+            let lineY = b.y + 25;
+            for (let l of lines) {
+                ctx.fillText(l, b.x + b.w/2, lineY);
+                lineY += 17;
+            }
+            ctx.font = "16px 'Segoe UI'";
+            ctx.fillStyle = "#2c7da0";
+            ctx.fillText(b.icon, b.x + b.w/2, b.y + 18);
+            // reset font
+            ctx.font = '500 12px "Inter"';
+            ctx.fillStyle = "#1e2a3e";
+            
+            // draw arrow after box except last
+            if (i < boxes.length-1) {
+                ctx.beginPath();
+                let fromX = b.x + b.w;
+                let fromY = b.y + b.h/2;
+                let toX = boxes[i+1].x;
+                let toY = boxes[i+1].y + boxes[i+1].h/2;
+                ctx.moveTo(fromX, fromY);
+                ctx.lineTo(toX-8, toY);
+                ctx.lineWidth = 1.8;
+                ctx.strokeStyle = "#5d8aa8";
+                ctx.stroke();
+                // arrowhead
+                ctx.beginPath();
+                ctx.moveTo(toX-8, toY-4);
+                ctx.lineTo(toX, toY);
+                ctx.lineTo(toX-8, toY+4);
+                ctx.fillStyle = "#5d8aa8";
+                ctx.fill();
+            }
+        }
+        // add small annotation under pipeline: "FROZEN (no training)"
+        ctx.font = "italic 10px 'Inter'";
+        ctx.fillStyle = "#5f7f9e";
+        ctx.fillText("Frozen attention detector (pre-trained, no fine-tuning)", 290, 145);
+        ctx.fillText("+ simple math → metric coordinates", 660, 145);
+    }
+
+    // ----- SIMULATOR LOGIC -----
+    const widthSlider = document.getElementById('widthSlider');
+    const centerSlider = document.getElementById('centerSlider');
+    const wValueSpan = document.getElementById('wValue');
+    const xcValueSpan = document.getElementById('xcValue');
+    const distanceSpan = document.getElementById('distanceVal');
+    const lateralSpan = document.getElementById('lateralVal');
+    const heightSpan = document.getElementById('heightVal');
+    const lateralDirSpan = document.getElementById('lateralDir');
+    const lateralValShort = document.getElementById('lateralValShort');
+    const lateralBar = document.getElementById('lateralBar');
+    const resetBtn = document.getElementById('resetSimBtn');
+    
+    // constants
+    const W_REAL = 0.4;     // meters
+    const F = 1000;         // focal length (pixels)
+    const CX = 320;         // optical center (image width 640)
+    const TILT_RAD = 15 * Math.PI / 180;
+    const SIN_TILT = Math.sin(TILT_RAD);
+    
+    function updateFromSliders() {
+        let w = parseFloat(widthSlider.value);
+        let xc = parseFloat(centerSlider.value);
+        wValueSpan.innerText = w + " px";
+        xcValueSpan.innerText = xc + " px";
+        
+        // distance Z
+        let Z = (W_REAL * F) / w;
+        // lateral offset X (meters)
+        let X = ((xc - CX) * Z) / F;
+        // height Y
+        let Y = Z * SIN_TILT;
+        
+        distanceSpan.innerText = Z.toFixed(2) + " m";
+        lateralSpan.innerText = X.toFixed(2) + " m";
+        heightSpan.innerText = Y.toFixed(2) + " m";
+        
+        // lateral indicator text & bar (X range typical -10 to +10 meters)
+        let dirText = X > 0 ? "➡️ Right" : (X < 0 ? "⬅️ Left" : "● Center");
+        lateralDirSpan.innerText = dirText + "  " + Math.abs(X).toFixed(2) + " m";
+        lateralValShort.innerText = X.toFixed(2) + " m";
+        // bar from 0 to 100%: map X from -12 to +12 meters to percentage (clamp)
+        let percent = 50; // default center
+        if (X <= -12) percent = 0;
+        else if (X >= 12) percent = 100;
+        else percent = ((X + 12) / 24) * 100;
+        lateralBar.style.width = percent + "%";
+        if (X > 0) lateralBar.style.backgroundColor = "#2c7da0";
+        else if (X < 0) lateralBar.style.backgroundColor = "#e28743";
+        else lateralBar.style.backgroundColor = "#5f8b9f";
+    }
+    
+    widthSlider.addEventListener('input', updateFromSliders);
+    centerSlider.addEventListener('input', updateFromSliders);
+    resetBtn.addEventListener('click', () => {
+        widthSlider.value = "20";
+        centerSlider.value = "320";
+        updateFromSliders();
+    });
+    
+    // initial draw
+    updateFromSliders();
+    drawPipeline();
+    
+    // optional: re-draw on window resize if needed (canvas stays same ratio)
+    window.addEventListener('resize', () => { drawPipeline(); });
+</script>
+</body>
+</html>
